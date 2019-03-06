@@ -26,15 +26,15 @@ class Auth {
   }
 
   login(p) {
-    return firebase.auth().signInWithEmailAndPassword(p.user, p.pass)    
+    return firebase.auth().signInWithEmailAndPassword(p.userName, p.password)    
   }
 
   loginApi(p) {
-    return api.login(p.user, p.pass)
+    return api.login(p.userName, p.password)
   }
 
   createFirebaseUser(p) {
-    return firebase.auth().createUserWithEmailAndPassword(p.user, p.pass)
+    return firebase.auth().createUserWithEmailAndPassword(p.userName, p.password)
   }
 
   logout(cb) {

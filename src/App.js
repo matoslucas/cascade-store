@@ -1,49 +1,97 @@
-import React, { Component } from 'react';
-import { Layout, Menu, Breadcrumb, Icon } from 'antd';
-import AppFooter from './com/AppFooter'
+import React from 'react';
+import PropTypes from 'prop-types';
+
+import { Router, Route, Switch, } from "react-router-dom";
+import createBrowserHistory from "history/createBrowserHistory";
+import withTracker from './com/withTracker';
+import ProtectedRoute from './com/ProtectedRoute'
+
+import CssBaseline from '@material-ui/core/CssBaseline';
+import { withStyles } from '@material-ui/core/styles';
+
 import AppHeader from './com/AppHeader'
+import AppMenu from './com/AppMenu'
 
-import "antd/dist/antd.css";
+import Login from './containers/Login'
 
-import logo from './logo.svg';
-import './App.css';
 
-const {
-  Content, Sider,
-} = Layout;
+const history = createBrowserHistory()
 
-const SubMenu = Menu.SubMenu;
-const MenuItemGroup = Menu.ItemGroup;
+const drawerWidth = 240;
 
-class App extends Component {
+const styles = theme => ({
+  root: {
+    display: 'flex',
+  },
+  drawer: {
+    [theme.breakpoints.up('sm')]: {
+      width: drawerWidth,
+      flexShrink: 0,
+    },
+  },
+  appBar: {
+    marginLeft: drawerWidth,
+    [theme.breakpoints.up('sm')]: {
+      width: `calc(100% - ${drawerWidth}px)`,
+    },
+  },
+  menuButton: {
+    marginRight: 20,
+    [theme.breakpoints.up('sm')]: {
+      display: 'none',
+    },
+  },
+  toolbar: theme.mixins.toolbar,
+  drawerPaper: {
+    width: drawerWidth,
+  },
+  content: {
+    flexGrow: 1,
+    padding: theme.spacing.unit * 3,
+    height: '100vh',
+  },
+});
 
+class App extends React.Component {
   state = {
-    current: 'mail',
-  }
+    mobileOpen: false,
+  };
 
-  handleClick = (e) => {
-    console.log('click ', e);
-    this.setState({
-      current: e.key,
-    });
-  }
+  handleDrawerToggle = () => {
+    // console.log(this.state.mobileOpen)
+    this.setState(state => ({ mobileOpen: !state.mobileOpen }));
+  };
 
   render() {
+    const { mobileOpen } = this.state
+    const { classes } = this.props;
+
     return (
-      <Layout className="layout">
-        <AppHeader />        
-        <Content style={{ padding: '0 50px' }}>
-          <Breadcrumb style={{ margin: '16px 0' }}>
-            <Breadcrumb.Item>Home</Breadcrumb.Item>
-            <Breadcrumb.Item>List</Breadcrumb.Item>
-            <Breadcrumb.Item>App</Breadcrumb.Item>
-          </Breadcrumb>
-          <div style={{ background: '#fff', padding: 24, minHeight: 280 }}>Content</div>
-        </Content>
-        <AppFooter />
-      </Layout>
+      <div className={classes.root}>
+        <CssBaseline />
+        <AppHeader onClick={this.handleDrawerToggle} />
+        <AppMenu mobileOpen={mobileOpen} onClose={this.handleDrawerToggle} className={classes.drawer} />
+        <main className={classes.content}>
+        <div className={classes.toolbar} />
+        <Router history={history}>
+          <Switch>
+            <Route path="/home" component={ProtectedRoute(withTracker(Login))} />
+            <Route path="/" component={withTracker(Login)} />
+          </Switch>
+        </Router>
+        </main>
+      </div>
     );
   }
 }
 
-export default App;
+App.propTypes = {
+  // classes: PropTypes.object.isRequired,
+  // Injected by the documentation to work in an iframe.
+  // You won't need it on your project.
+  container: PropTypes.object,
+  // theme: PropTypes.object.isRequired,
+};
+
+//export default App;
+export default withStyles(styles, { withTheme: true })(App);
