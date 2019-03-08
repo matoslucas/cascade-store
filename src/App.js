@@ -13,6 +13,7 @@ import AppHeader from './com/AppHeader'
 import AppMenu from './com/AppMenu'
 
 import Login from './containers/Login'
+import Home from './containers/Home'
 
 
 const history = createBrowserHistory()
@@ -71,14 +72,16 @@ class App extends React.Component {
         <CssBaseline />
         <AppHeader onClick={this.handleDrawerToggle} />
         <AppMenu mobileOpen={mobileOpen} onClose={this.handleDrawerToggle} className={classes.drawer} />
-        <main className={classes.content}>
-        <div className={classes.toolbar} />
-        <Router history={history}>
-          <Switch>
-            <Route path="/home" component={ProtectedRoute(withTracker(Login))} />
-            <Route path="/" component={withTracker(Login)} />
-          </Switch>
-        </Router>
+        <main style={{
+          marginTop: 64,
+          width: '100%',
+        }}>
+          <Router history={history}>
+            <Switch>
+              <Route path="/home" component={ProtectedRoute(withTracker(Home))} />
+              <Route path="/" component={withTracker(Login)} />
+            </Switch>
+          </Router>
         </main>
       </div>
     );

@@ -1,42 +1,152 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-import { withStyles } from '@material-ui/core/styles';
-import IconButton from '@material-ui/core/IconButton';
-import Input from '@material-ui/core/Input';
-import InputLabel from '@material-ui/core/InputLabel';
-import InputAdornment from '@material-ui/core/InputAdornment';
 
-import FormControl from '@material-ui/core/FormControl';
+import {
+    Form, Icon, Input, Button,
+} from 'antd';
 
-import Visibility from '@material-ui/icons/Visibility';
-import VisibilityOff from '@material-ui/icons/VisibilityOff';
+import 'antd/dist/antd.css';
+import './Login.css'
+import auth from "../utils/Auth";
 
-import Button from '@material-ui/core/Button';
 
-const styles = theme => ({
-    root: {
-        display: 'flex',
-        flexWrap: 'wrap',
-    },
-    margin: {
-        margin: theme.spacing.unit,
-    },
-    withoutLabel: {
-        marginTop: theme.spacing.unit * 3,
-    },
-    textField: {
-        flexBasis: 200,
-    },
-});
+class NormalLoginForm extends React.Component {
+    handleSubmit = (e) => {
+        e.preventDefault();
+        this.props.form.validateFields((err, values) => {
+            if (!err) {
+                // console.log('Received values of form: ', values);
+                this.props.onLogin(values)
+            }
+        });
+    }
 
+    render() {
+        const { getFieldDecorator } = this.props.form;
+        return (
+            <Form onSubmit={this.handleSubmit} className="login-form">
+                <Form.Item>
+                    {getFieldDecorator('userName', {
+                        rules: [{ required: true, message: 'Please input your username!' }],
+                    })(
+                        <Input prefix={<Icon type="user" style={{ color: 'rgba(0,0,0,.25)' }} />} placeholder="Username" />
+                    )}
+                </Form.Item>
+                <Form.Item>
+                    {getFieldDecorator('password', {
+                        rules: [{ required: true, message: 'Please input your Password!' }],
+                    })(
+                        <Input prefix={<Icon type="lock" style={{ color: 'rgba(0,0,0,.25)' }} />} type="password" placeholder="Password" />
+                    )}
+                </Form.Item>
+                <Form.Item>
+                    <Button type="primary" htmlType="submit" className="login-form-button">
+                        Log in
+                    </Button>
+
+                </Form.Item>
+            </Form>
+        );
+    }
+}
+
+const WrappedNormalLoginForm = Form.create({ name: 'normal_login' })(NormalLoginForm);
 
 
 class Login extends React.Component {
-    state = {
-        user: '',
-        password: '',
-        showPassword: false,
-    };
+
+    constructor(props) {
+        super(props)
+        // Don't call this.setState() here!
+        this.state = {
+            isAuthenticated: false,
+            isLoading: true,
+            showPassword: false,
+        }
+
+        this.onLogin = this.onLogin.bind(this)
+        this.isAuthenticated = this.isAuthenticated.bind(this)
+        this.handleChange = this.handleChange.bind(this)
+    }
+
+    componentDidMount() {
+        this.isAuthenticated()
+    }
+
+    isAuthenticated() {
+        const _self = this
+
+        const promise = auth.isAuthenticated()
+
+        promise.then(user => {
+            _self.setState({ isAuthenticated: true, isLoading: false })
+            _self.props.history.push("/home");
+        }).catch(e => {
+            console.log(e)
+            _self.setState({ isAuthenticated: false, isLoading: false })
+        })
+
+    }
+
+
+    onLogin(credentials) {
+
+        //console.log(credentials)
+
+        const _self = this
+        auth.login(credentials).catch(function (error) {
+            // Handle Errors here.
+            console.log('onLogin', error)
+            //alert(error.message)
+            _self.loginOnTrackviaApi(credentials)
+
+        }).then(function (e) {
+            console.log(e)
+
+            if (e) {
+                _self.props.history.push("/home");
+            }
+
+        });
+
+
+    }
+
+    loginOnTrackviaApi(credentials) {
+        const _self = this
+        auth.loginApi(credentials).catch(function (error) {
+            // Handle Errors here.
+            console.log('loginOnTrackviaApi', error)
+            alert(error.message)
+
+
+        }).then(function (e) {
+            console.log(e)
+
+            if (e) {
+                // create firebase account
+                _self.createFirebaseAccount(credentials)
+            }
+
+        });
+    }
+
+    createFirebaseAccount(credentials) {
+        const _self = this
+        auth.createFirebaseUser(credentials).catch(function (error) {
+            // Handle Errors here.
+            console.log('createFirebaseAccount', error)
+
+
+        }).then(function (e) {
+            console.log(e)
+
+            if (e) {
+
+                _self.props.history.push("/home");
+            }
+
+        });
+    }
 
     handleChange = prop => event => {
         this.setState({ [prop]: event.target.value });
@@ -47,51 +157,22 @@ class Login extends React.Component {
     };
 
     render() {
-        const { classes } = this.props;
-
+        const { isLoading } = this.state
         return (
-            <div className={classes.root}>
-
-                <FormControl fullWidth className={classes.margin}>
-                    <InputLabel htmlFor="adornment-amount">Login</InputLabel>
-                    <Input
-                        id="adornment-amount"
-                        value={this.state.amount}
-                        onChange={this.handleChange('user')}
-                    />
-                </FormControl>
-
-                <FormControl fullWidth className={classes.margin}>
-                    <InputLabel htmlFor="adornment-password">Password</InputLabel>
-                    <Input
-                        id="adornment-password"
-                        type={this.state.showPassword ? 'text' : 'password'}
-                        value={this.state.password}
-                        onChange={this.handleChange('password')}
-                        endAdornment={
-                            <InputAdornment position="end">
-                                <IconButton
-                                    aria-label="Toggle password visibility"
-                                    onClick={this.handleClickShowPassword}
-                                >
-                                    {this.state.showPassword ? <Visibility /> : <VisibilityOff />}
-                                </IconButton>
-                            </InputAdornment>
-                        }
-                    />
-                </FormControl>
-                <FormControl style={{display: 'flex', alignItems: 'flex-end', width: '100%'}} >
-                <Button variant="contained" color="primary"  style={{width: 250}}>
-                    Login
-                </Button>
-                </FormControl>
+            <div>
+                {
+                    isLoading ?
+                        null :
+                        <div style={{ 
+                            marginTop: 30,
+                            display:'flex',
+                            justifyContent: 'center' }}>
+                            <WrappedNormalLoginForm onLogin={this.onLogin} />
+                        </div>
+                }
             </div>
         );
     }
 }
 
-Login.propTypes = {
-    classes: PropTypes.object.isRequired,
-};
-
-export default withStyles(styles)(Login);
+export default Login

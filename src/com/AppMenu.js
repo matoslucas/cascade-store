@@ -10,16 +10,21 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import MailIcon from '@material-ui/icons/Mail';
 
+import auth from "../utils/Auth";
+
 class AppMenu extends React.Component {
   state = {
     current: 'mail',
   }
 
-  handleClick = (e) => {
-    console.log('click ', e);
-    this.setState({
-      current: e.key,
-    });
+  handleClick = (value) => {
+    
+    switch(value){
+      case 'Logout' : auth.logout(()=>{})
+      break;
+      default: console.log('click ', value);
+    }
+    
   }
 
   render() {
@@ -28,11 +33,12 @@ class AppMenu extends React.Component {
 
     const drawer = (
       <div>
-        <div />
+        
+
         <Divider />
         <List>
-          {['Inbox', 'Starred', 'Send email', 'Drafts'].map((text, index) => (
-            <ListItem button key={text}>
+          {['Logout', 'Starred', 'Send email', 'Drafts'].map((text, index) => (
+            <ListItem button key={text} onClick={()=>{this.handleClick(text)}}>
               <ListItemIcon>{index % 2 === 0 ? <InboxIcon /> : <MailIcon />}</ListItemIcon>
               <ListItemText primary={text} />
             </ListItem>
